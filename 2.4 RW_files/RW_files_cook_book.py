@@ -47,12 +47,15 @@ def get_dictionary_cook_book():
 def get_shop_list_by_dishes(dishes, person_count):
   recipes_dict = get_dictionary_cook_book()
   ingredient_dict = {}
+  #count_dishes = 0
   
   for key, values in recipes_dict.items():
     for value in dishes:
+      count_dishes = dishes.count(value)
+
       if key == value:
         for ingredient in values:
-          quantity = int(ingredient['quantity']) * person_count
+          quantity = int(ingredient['quantity']) * person_count * count_dishes
 
           count_ingredient_dict = {
             'measure': ingredient['measure'], 
