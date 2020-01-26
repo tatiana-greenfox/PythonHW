@@ -47,7 +47,6 @@ def get_dictionary_cook_book():
 def get_shop_list_by_dishes(dishes, person_count):
   recipes_dict = get_dictionary_cook_book()
   ingredient_dict = {}
-  #count_dishes = 0
   
   for key, values in recipes_dict.items():
     for value in dishes:
