@@ -1,4 +1,5 @@
-def print_info(text_news):
+def print_info(text_news , type_file):
+  text_news = text_news.casefold()
   description_list = text_news.split()
   description_set = set(description_list)
   new_description_list = []
@@ -10,8 +11,8 @@ def print_info(text_news):
           new_description_list.append(value_list)
   sorted_list = sorted(new_description_list , key=lambda term: term[1])     
   slice_list = sorted_list[-1:-11:-1] 
-  print(text_news , '\n\nТоп 10 слов:')
-  
+
+  print(f"Топ 10 слов для {type_file}:")
   for value in slice_list:
     print(value[0] , '-' , value[1])
   print()
@@ -21,10 +22,12 @@ def get_xml():
 
   tree = xml_file.parse('newsafr.xml')
   root = tree.getroot()
+  description_text = str()
 
   for description in root.findall('channel/item/description'):
-    description_text = description.text
-    print_info(description_text)
+    description_text += description.text
+
+  print_info(description_text , 'xml')
 
 def get_json():
   import json
@@ -32,24 +35,31 @@ def get_json():
   with open('newsafr.json' , encoding = 'utf-8') as json_file:
     newsafr = json.load(json_file)
     items_list = newsafr['rss']['channel']['items']
+    description = str()
 
     for value in items_list:
-      description = value['description']
-      print_info(description)
+      description += value['description']
+
+    print_info(description , 'json')
 
 def main():
-  print('Для получения информации введите xml или json, выхода exit')
-  while True:
-    instraction = input('Введите тип файла: ')
+  info = '''Для получения топ 10 слов введите:
+  - "1" для json-файла;
+  - "2" для xml-файла введите;
+  - "0" для выхода из программы
+  '''
 
-    if instraction == 'xml':
-      print('Информация по xml-файлу\n\n')
-      get_xml()
-    elif instraction == 'json':
-      print('Информация по json-файлу\n\n')
+  print(info)
+  
+  while True:
+    instraction = input('Введите номер иструкции: ')
+
+    if instraction == '1':
       get_json()
-    elif instraction == 'exit':
+    elif instraction == '2':
+      get_xml()
+    elif instraction == '0':
       print('Произведен выход из программы!')
       break
 
-main() 
+main()
