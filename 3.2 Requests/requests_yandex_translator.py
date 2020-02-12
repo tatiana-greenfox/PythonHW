@@ -14,14 +14,14 @@ def translate_it(path_text, path_result, text_lang, to_lang):
     response = requests.get(URL, params=params)
     json_ = response.json()
     text_result = ''.join(json_['text'])
-    writin_file(path_result, text_result)
+    writing_file(path_result, text_result)
 
 def reading_file(path):
     with open(path, 'r', encoding='utf-8') as f:
         text = f.read()
         return text
 
-def writin_file(path, text):
+def writing_file(path, text):
     with open(path, 'w', encoding='utf-8') as f:
         return f.write(text)
 
