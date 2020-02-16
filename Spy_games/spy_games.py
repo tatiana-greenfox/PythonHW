@@ -1,6 +1,6 @@
 from pprint import pprint
 
-import requests, time
+import requests, time, json
 
 # API_ID = '7309299'
 access_token = '5f43c35946c516a3f879b50719786fa492274747a73658133de8cf7f0f1ee0f7d351fbb9bc742444bb763'
@@ -17,8 +17,8 @@ def requests_get(request, params):
 
 class User:
     def input_user_name(self):
-        # self.user_name = input('Введите имя или id пользователя: ')
-        self.user_name = 'eshmargunov'
+        self.user_name = input('Введите имя или id пользователя: ')
+        # self.user_name = 'eshmargunov'
         return self.user_name
 
     def get_user_id(self):
@@ -75,12 +75,21 @@ class Group:
         self.params = {
                 'access_token': access_token,
                 'v': version,
-                'group_ids': groups_id_list
+                'group_id': group_id,
+                'fields': 'members_count'
             }
 
         response = requests.get('https://api.vk.com/method/groups.getById' , self.params) 
         response_json = response.json()
-        pprint(response_json)
+        group_dict = {}
+
+        for group in response_json['response']:
+            group_dict = {
+                    'name': group['name'],
+                    'gid': group['id'],
+                    'members_count': group['members_count']
+                }
+        return group_dict
 
 
 if __name__ == "__main__":
@@ -127,12 +136,18 @@ if __name__ == "__main__":
         for group in group_list:
             friends_groups_id_set.add(group['id'])
 
-    difference_groups = list(user_groups_id_set.difference(friends_groups_id_set))
-    groups_list = []
-    
-    for id_group in difference_groups:
-        id_group_str = str(id_group)
-        groups_list.append(id_group_str)
-    
+    difference_groups = user_groups_id_set.difference(friends_groups_id_set)
     group = Group()
-    group.get_info_group(groups_list)
+    group_list = []
+
+    for group_id in difference_groups:
+        print('-' * 10)
+        try:
+            group_info = group.get_info_group(group_id)
+            group_list.append(group_info)
+        except Exception:
+            time.sleep(2)
+            print('-' * 10)
+    
+    with open('groups.json' , 'w', encoding='utf-8') as json_file:
+        json.dump(group_list, json_file, ensure_ascii=False)
