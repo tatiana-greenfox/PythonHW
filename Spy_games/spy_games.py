@@ -6,11 +6,35 @@ access_token = '5f43c35946c516a3f879b50719786fa492274747a73658133de8cf7f0f1ee0f7
 version = '5.103'
 
 class User:
-    def get_groups_id_list(self, user_id):
+    def get_id(self, user_name):
+        if type(user_name) == str:
+            if user_name.isdigit() == True:
+                self.user_id = user_name
+                return self.user_id
+            else:
+                self.screen_name = user_name
+
+                self.params = {
+                    'access_token': access_token,
+                    'v': version,
+                    'user_ids': self.screen_name
+                }
+
+                self.request = 'https://api.vk.com/method/users.get'
+                response_json = get_response_json(self.request, self.params)
+                
+                for value in response_json['response']:
+                    self.user_id = value['id']
+                return self.user_id  
+        elif type(user_name) == int:
+            self.user_id = user_name
+            return self.user_id
+
+    def get_groups_list(self, user_name):
         self.params = {
             'access_token': access_token,
             'v': version,
-            'user_id': user_id,
+            'user_id': self.get_id(user_name),
             'extended': '1',
             'count': '1000'
         }
@@ -20,18 +44,22 @@ class User:
         response_json = get_response_json(self.request, self.params)
         items_list = response_json['response']['items']
 
+        return items_list
+
+    def get_groups_id_list(self, user_name):
+        groups_list = self.get_groups_list(user_name)
         groups_id_list = []
 
-        for group in items_list:
+        for group in groups_list:
             groups_id_list.append(group['id'])
         
-        return groups_id_list
+        return groups_id_list    
 
-    def get_friends_id_list(self, user_id):            
+    def get_friends_list(self, user_name):            
         self.params = {
             'access_token': access_token,
             'v': version,
-            'user_id': user_id,
+            'user_id': self.get_id(user_name),
             'order': 'hints', 
             'fields': 'deactivated'
             }
@@ -39,10 +67,15 @@ class User:
         self.request = 'https://api.vk.com/method/friends.get'
 
         response_json = get_response_json(self.request, self.params) 
+
+        return response_json['response']['items'] 
+
+    def get_friends_id_list(self, user_name):            
+        friends_list = self.get_friends_list(user_name)
   
         friends_id_list = []
 
-        for friend in response_json['response']['items']:
+        for friend in friends_list:
             if (friend.get('deactivated') == 'deleted') or (friend.get('deactivated') == 'banned') or ((friend.get('is_closed') == '1') and (friend.get('can_access_closed') == '0')):
                 pass
             else:
@@ -85,26 +118,6 @@ def get_response_json(request, params):
     response_json = response.json()
     return response_json
 
-def get_user_id(user_name):
-    if user_name.isdigit() == True:
-        user_id = user_name
-        return user_id
-    else:
-        screen_name = user_name
-
-        params = {
-            'access_token': access_token,
-            'v': version,
-            'user_ids': screen_name
-        }
-
-        request = 'https://api.vk.com/method/users.get'
-        response_json = get_response_json(request, params)
-           
-        for value in response_json['response']:
-            user_id = value['id']
-        return user_id  
-
 def writing_groups_in_json(groups, path):
     group_list = []
 
@@ -117,19 +130,21 @@ def writing_groups_in_json(groups, path):
 
 if __name__ == "__main__":
     #тестовый пользователь: 'eshmargunov' или '171691064'
-    user_name = input('Введите имя или id пользователя: ')
-    user_id = get_user_id(user_name)
+    # user_name = input('Введите имя или id пользователя: ')
+    # user_id = get_user_id(user_name)
+    user_name = 'eshmargunov'
 
     user = User()
-    user_groups_id_list = user.get_groups_id_list(user_id)
-    user_friends_id_list = user.get_friends_id_list(user_id)
+    user_groups_id_list = user.get_groups_id_list(user_name)
+    user_friends_id_list = user.get_friends_id_list(user_name)
 
+    friend = User()
     friends_groups_id_list = []
 
     for friend_id in user_friends_id_list:
         try:
-            friend_groups_id_list = user.get_groups_id_list(friend_id)
-            time.sleep(0.3)
+            friend_groups_id_list = friend.get_groups_id_list(friend_id)
+            time.sleep(0.35)
         except KeyError:
             time.sleep(1)
         else:
@@ -148,4 +163,4 @@ if __name__ == "__main__":
 
     group = Group()
 
-    writing_groups_in_json(difference_groups, 'groups.json')
+    writing_groups_in_json(difference_groups, 'groups2.json')
