@@ -95,18 +95,19 @@ class Group:
         self.request = 'https://api.vk.com/method/groups.getById'
 
         group_dict = {}
-        
+
         response_json = get_response_json(self.request, self.params)  
         time.sleep(0.35)
-       
+
         for group in response_json['response']:
             group_dict = {
                     'name': group['name'],
                     'gid': group['id'],
                     'members_count': group['members_count']
                 }
-    
+
         return group_dict
+
 
 #-----------------------------------------------------------------------------------    
 
@@ -132,47 +133,57 @@ def writing_groups_in_json(groups, path):
     with open(path , 'w', encoding='utf-8') as json_file:
         json.dump(group_list, json_file, ensure_ascii=False)
 
+
 if __name__ == "__main__":
     #тестовый пользователь: 'eshmargunov' или '171691064'
     user_name = input('Введите имя или id пользователя: ')
     # user_name = 'eshmargunov'
 
     user = User()
+
     user_groups_id_list = user.get_groups_id_list(user_name)
     user_friends_id_list = user.get_friends_id_list(user_name)
 
-    friend = User()
-    friends_groups_id_list_1 = []
+    groups_list = []
 
-    for friend_id in user_friends_id_list:
-        try:
-            friend_groups_id_list = friend.get_groups_id_list(friend_id)
-            friends_groups_id_list_1.append(friend_groups_id_list)
-            time.sleep(1)
-        except KeyError:
-            time.sleep(1)
-             
-    friends_groups_id_set = set()
-    friends_groups_id_list_2 = []
+    request = 'https://api.vk.com/method/groups.isMember'
 
-    for group_list in friends_groups_id_list_1:
-        for group_id in group_list:
-            friends_groups_id_set.add(group_id)
-            friends_groups_id_list_2.append(group_id)
+    for group_id in user_groups_id_list:
+        member_status_list = []
+        groups_dict = {}
 
-    user_groups_id_set = set(user_groups_id_list)
+        for friend_id in user_friends_id_list:
+            params = {
+                    'access_token': access_token,
+                    'v': version,
+                    'group_id': group_id,
+                    'user_ids': friend_id,
+                    'extended': 1
+                }
 
-    difference_groups = user_groups_id_set.difference(friends_groups_id_set)
-    
-    intersection_groups = []
+            response_json = get_response_json(request, params)
+            time.sleep(0.35)
 
-    count_friends = 10
+            for value in response_json['response']:
+                member_status_list.append(value['member'])
 
-    for value in user_groups_id_set.intersection(friends_groups_id_set):
-        if friends_groups_id_list_2.count(value) < count_friends:
-            intersection_groups.append(value)
+        groups_dict = {group_id:  member_status_list}
+        groups_list.append(groups_dict)
+
+    difference_groups_set = set()
+    intersection_groups_set = set()
+
+    count_friends = 10 #кол-во друзей в группе
+
+    for group_dict in groups_list:
+        for key, value in group_dict.items():
+            if 1 in value:
+                if value.count(1) < count_friends:
+                    intersection_groups_set.add(key)
+            else:
+                difference_groups_set.add(key)
 
     group = Group()
 
-    writing_groups_in_json(difference_groups, 'difference_groups.json')
-    writing_groups_in_json(intersection_groups, 'intersection_groups.json')
+    writing_groups_in_json(difference_groups_set, 'difference_groups.json')
+    writing_groups_in_json(intersection_groups_set, 'intersection_groups.json')
