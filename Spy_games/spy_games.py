@@ -148,7 +148,7 @@ if __name__ == "__main__":
         try:
             friend_groups_id_list = friend.get_groups_id_list(friend_id)
             friends_groups_id_list_1.append(friend_groups_id_list)
-            time.sleep(1)
+            time.sleep(0.35)
         except KeyError:
             time.sleep(1)
              
