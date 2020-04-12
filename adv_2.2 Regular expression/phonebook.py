@@ -13,31 +13,19 @@ def split_fio(phonebook):
     contacts_list = read_phonebook(phonebook)
 
     for contact in contacts_list:
-        lastname = re.split(r"\s", contact[0])
-        name = re.split(r"\s", contact[1])
-        surname = re.split(r"\s", contact[2])
+        fio_str = ' '.join(contact[:3])
+        fio_list = re.findall(r'\w+', fio_str)
         
-        if len(lastname) == 3:
-            contact[0] = lastname[0] #lastname
-            contact[1] = lastname[1] #name
-            contact[2] = lastname[2] #surname
-        elif len(lastname) == 2:
-            contact[0] = lastname[0] #lastname
-            contact[1] = lastname[1] #name
-        elif len(name) == 3:
-            contact[0] = name[0] #lastname
-            contact[1] = name[1] #name
-            contact[2] = name[2] #surname
-        elif len(name) == 2:
-            contact[1] = name[0] #name
-            contact[2] = name[1] #surname
-        elif len(surname) == 3:
-            contact[0] = surname[0] #lastname
-            contact[1] = surname[1] #name
-            contact[2] = surname[2] #surname
-        elif len(surname) == 2:
-            contact[1] = surname[0] #name
-            contact[2] = surname[1] #surname
+        if len(fio_list) == 3:
+            contact[0] = fio_list[0] 
+            contact[1] = fio_list[1] 
+            contact[2] = fio_list[2] 
+        elif len(fio_list) == 2:
+            contact[0] = fio_list[0] 
+            contact[1] = fio_list[1] 
+        else:
+            contact[0] = fio_list[0]
+
     return contacts_list
                 
 def replace_telephone_number(phonebook):
@@ -49,35 +37,28 @@ def replace_telephone_number(phonebook):
     for contact in contacts_list:
         phone_number = contact[5]
 
-        if phone_number and ('доб' not in phone_number):
-            contact[5] = pattern_phonenumber.sub(r"+7(495)\3-\4-\5", phone_number)
-        elif phone_number and ('доб' in phone_number):
-            contact[5] = pattern_phonenumber.sub(r"+7(495)\3-\4-\5 доб.\7", phone_number)
+        if phone_number:
+            if 'доб' not in phone_number:
+                contact[5] = pattern_phonenumber.sub(r"+7(495)\3-\4-\5", phone_number)
+            else:
+                contact[5] = pattern_phonenumber.sub(r"+7(495)\3-\4-\5 доб.\7", phone_number)
     
     return contacts_list
 
 def merge_contacts(phonebook):
 
     contacts_list = split_fio(phonebook)
-
+   
     for contact_1 in contacts_list:
         for contact_2 in contacts_list:
 
             if contact_1[0] == contact_2[0] and contact_1[1] == contact_2[1]:
-                if contact_2[2]:
-                    contact_1[2] = contact_2[2]
+                index = 2
 
-                if contact_2[3]:
-                    contact_1[3] = contact_2[3]
-
-                if contact_2[4]:
-                    contact_1[4] = contact_2[4]
-
-                if contact_2[5]:
-                    contact_1[5] = contact_2[5]
-
-                if contact_2[6]:
-                    contact_1[6] = contact_2[6]
+                if  contact_2[index]:
+                    while 2 <= index <= 6:
+                        contact_1[index] = contact_2[index]
+                        index += 1
 
     for contact in contacts_list:
         count = contacts_list.count(contact)
