@@ -46,7 +46,6 @@ def find_cheapest(db_name, collection_name): # отсортировать бил
 
 def find_by_name(artist_name, db_name, collection_name): # найти билеты по исполнителю, где имя исполнителя может быть задано не полностью, и вернуть их по возрастанию цены.
     collection = return_collection(db_name, collection_name)
-
     pattern_name = re.compile(artist_name, re.IGNORECASE)
     
     artists = collection.find({'name': pattern_name}).sort('cost', 1)
@@ -59,7 +58,7 @@ def find_date(db_name, collection_name, date_first, date_last): # сортиро
     df = datetime.strptime(date_first, '%d.%m.%Y')
     dl = datetime.strptime(date_last, '%d.%m.%Y')
 
-    artists = collection.find({'date': {'$lte': dl}}).sort('date', 1)
+    artists = collection.find({'date': {'$gte': df, '$lte': dl}}).sort('date', 1)
 
     for artist in artists:
         print(artist)
@@ -67,6 +66,6 @@ def find_date(db_name, collection_name, date_first, date_last): # сортиро
 
 if __name__ == "__main__":
     # create_documents('tickets_manager_4', 'concerts_information', 'artists.csv')
-    find_by_name('S', 'tickets_manager_4', 'concerts_information')
+    # find_by_name('S', 'tickets_manager_4', 'concerts_information')
     # find_cheapest('tickets_manager_4', 'concerts_information')
-    # find_date('tickets_manager_4', 'concerts_information')
+    find_date('tickets_manager_4', 'concerts_information', '01.07.2020', '30.07.2020')
